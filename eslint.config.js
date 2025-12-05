@@ -6,7 +6,9 @@ import react from 'eslint-plugin-react'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'backend']),
+  globalIgnores(['dist']),
+  
+  // Frontend Config
   {
     files: ['src/**/*.{js,jsx}'],
     plugins: {
@@ -34,17 +36,33 @@ export default defineConfig([
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
       'react-hooks/exhaustive-deps': 'warn',
-      // Allow setState in effects for legitimate use cases (like initialization)
       'react-hooks/set-state-in-effect': 'off',
-      // Allow impure functions like Date.now() in event handlers
       'react-hooks/purity': 'off',
-      // Allow document.body modifications for modals
       'react-hooks/immutability': 'off',
-      // Allow exporting non-components from context files
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      // React JSX specific rules
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
     },
   },
+
+  // Backend Config
+  {
+    files: ['backend/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        ...globals.node,
+      },
+      sourceType: 'commonjs',
+    },
+    rules: {
+      'no-unused-vars': ['warn', { 
+        varsIgnorePattern: '^_', 
+        argsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
+      }],
+      'no-undef': 'error',
+      'no-console': 'off'
+    }
+  }
 ])

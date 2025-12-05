@@ -5,7 +5,7 @@
 
 const { User } = require('../models');
 const { verifyAccessToken, extractToken } = require('../utils/jwtHelper');
-const { UnauthorizedError, ForbiddenError } = require('../utils/errors');
+const { UnauthorizedError } = require('../utils/errors');
 const { errorResponse } = require('../utils/responseFormatter');
 
 /**

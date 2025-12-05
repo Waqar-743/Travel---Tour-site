@@ -3,7 +3,7 @@
  * Handle Stripe payments, webhooks, and payment history
  */
 
-const { Payment, Booking, Trip, User } = require('../models');
+const { Payment, Booking } = require('../models');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/responseFormatter');
 const { catchAsync } = require('../middleware/errorHandler');
 const {
