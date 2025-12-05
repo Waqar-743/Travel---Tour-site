@@ -1,5 +1,6 @@
 # GB Travel Agency - CI/CD Pipeline
 # This workflow runs on push to main branch and pull requests
+# Updated: Node.js 22.x for Vite compatibility
 
 name: CI/CD Pipeline
 
