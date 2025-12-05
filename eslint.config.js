@@ -38,8 +38,11 @@ export default defineConfig([
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/purity': 'off',
+      // Allow document.body modifications for modals
       'react-hooks/immutability': 'off',
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // Allow exporting non-components from context files
+      'react-refresh/only-export-components': 'off',
+      // React JSX specific rules
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
     },
