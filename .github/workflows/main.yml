@@ -101,13 +101,22 @@ jobs:
         continue-on-error: true
 
   # ==========================================
-  # Deploy (Only on main branch push)
+  # Deploy to GitHub Pages
   # ==========================================
   deploy:
-    name: Deploy
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: [frontend, backend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: 📥 Checkout Repository
@@ -119,43 +128,14 @@ jobs:
           name: frontend-build
           path: dist/
 
-      - name: 🚀 Deploy to Production
-        run: |
-          echo "✅ Build successful!"
-          echo "📦 Frontend build ready in dist/"
-          echo "🚀 Ready for deployment to your hosting provider"
-          echo ""
-          echo "To deploy manually:"
-          echo "  - Vercel: vercel --prod"
-          echo "  - Netlify: netlify deploy --prod"
-          echo "  - GitHub Pages: Enable in repository settings"
+      - name: 📄 Setup Pages
+        uses: actions/configure-pages@v4
 
-      # Uncomment and configure for your hosting provider:
-      
-      # Deploy to Vercel
-      # - name: Deploy to Vercel
-      #   uses: amondnet/vercel-action@v25
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      #     working-directory: ./
+      - name: 📦 Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
 
-      # Deploy to Netlify
-      # - name: Deploy to Netlify
-      #   uses: nwtgck/actions-netlify@v2
-      #   with:
-      #     publish-dir: './dist'
-      #     production-branch: main
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     deploy-message: "Deploy from GitHub Actions"
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      # Deploy to GitHub Pages
-      # - name: Deploy to GitHub Pages
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      #     publish_dir: ./dist
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
