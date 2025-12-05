@@ -1,0 +1,352 @@
+/* ===== Destinations Section ===== */
+.destinations {
+  background-color: var(--background);
+}
+
+/* Season Banner */
+.season-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, rgba(45, 122, 126, 0.1) 0%, rgba(45, 122, 126, 0.05) 100%);
+  border: 1px solid rgba(45, 122, 126, 0.2);
+  border-radius: var(--radius-lg);
+  margin-bottom: 40px;
+}
+
+.season-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary-accent) 0%, #48a5aa 100%);
+  border-radius: 50%;
+  color: white;
+  flex-shrink: 0;
+}
+
+.season-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.season-info .season-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.season-info .season-name {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.season-tip {
+  margin-left: auto;
+  padding: 8px 16px;
+  background: white;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.destinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.destination-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.destination-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.destination-image {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.destination-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.destination-card:hover .destination-image img {
+  transform: scale(1.08);
+}
+
+.destination-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(26, 58, 58, 0.4) 100%
+  );
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.destination-badge {
+  padding: 6px 14px;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: var(--primary-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.altitude-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background-color: rgba(26, 58, 58, 0.85);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+}
+
+/* Weather Widget */
+.weather-widget {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(26, 58, 58, 0.98) 0%, rgba(26, 58, 58, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  padding: 16px;
+  transform: translateY(100%);
+  transition: transform var(--transition-normal);
+}
+
+.destination-card:hover .weather-widget {
+  transform: translateY(0);
+}
+
+.weather-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weather-seasons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.weather-season {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.weather-season .season-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4px;
+}
+
+.weather-season .season-temp {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+}
+
+.weather-season .season-condition {
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+}
+
+.destination-content {
+  padding: 24px;
+}
+
+.destination-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.destination-description {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Activities Tags */
+.destination-activities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.activity-tag {
+  padding: 4px 10px;
+  background: linear-gradient(135deg, var(--secondary-accent) 0%, #c4915f 100%);
+  color: var(--primary-dark);
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.destination-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.highlight-tag {
+  padding: 4px 12px;
+  background-color: rgba(45, 122, 126, 0.1);
+  color: var(--primary-accent);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+}
+
+.destination-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-accent);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.destination-link:hover {
+  color: var(--primary-accent-hover);
+  gap: 12px;
+}
+
+.destination-link svg {
+  transition: transform var(--transition-fast);
+}
+
+.destination-link:hover svg {
+  transform: translateX(4px);
+}
+
+/* Divider */
+.divider {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+  border-radius: 2px;
+  margin: 0 auto 24px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .season-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .season-tip {
+    margin-left: 0;
+  }
+
+  .weather-widget {
+    transform: translateY(0);
+    position: relative;
+    background: var(--primary-dark);
+  }
+  
+  .destinations-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .destination-content {
+    padding: 16px;
+  }
+  
+  .destination-name {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .destinations-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .destination-description {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .destinations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .destinations-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .destination-description {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
