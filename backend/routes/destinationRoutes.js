@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { destinationController } = require('../controllers');
-const { protect, adminOnly, optionalAuth, destinationValidation, validateObjectId, paginationValidation } = require('../middleware');
+const { protect, adminOnly, optionalAuth: _optionalAuth, destinationValidation, validateObjectId, paginationValidation } = require('../middleware');
 
 // Public routes
 router.get('/search', paginationValidation, destinationController.searchDestinations);

@@ -21,7 +21,7 @@ const BookingModal = ({ isOpen, onClose, onOpenAuth, selectedPackage = null }) =
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState(null);
+  const [_error, setError] = useState(null);
 
   useEffect(() => {
     if (selectedPackage) {
@@ -53,14 +53,13 @@ const BookingModal = ({ isOpen, onClose, onOpenAuth, selectedPackage = null }) =
     };
   }, [isOpen]);
 
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') onClose();
-  };
-
   useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
+  }, [onClose]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

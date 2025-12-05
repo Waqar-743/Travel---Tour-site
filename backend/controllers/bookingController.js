@@ -13,7 +13,7 @@ const {
   createRefund 
 } = require('../utils/stripeService');
 const { 
-  sendBookingConfirmationEmail, 
+  _sendBookingConfirmationEmail, 
   sendBookingCancellationEmail 
 } = require('../utils/emailService');
 

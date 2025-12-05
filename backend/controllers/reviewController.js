@@ -4,6 +4,7 @@
  */
 
 const { Review, Trip, Booking } = require('../models');
+const mongoose = require('mongoose');
 const { successResponse, createdResponse, errorResponse, paginatedResponse } = require('../utils/responseFormatter');
 const { catchAsync } = require('../middleware/errorHandler');
 
@@ -92,7 +93,7 @@ const getTripReviews = catchAsync(async (req, res) => {
       .limit(limit),
     Review.countDocuments(query),
     Review.aggregate([
-      { $match: { trip: trip._id, status: 'approved' } },
+      { $match: { trip: new mongoose.Types.ObjectId(tripId), status: 'approved' } },
       {
         $group: {
           _id: '$rating.overall',

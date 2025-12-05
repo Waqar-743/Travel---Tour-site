@@ -100,7 +100,7 @@ const handleJWTExpiredError = () => {
 /**
  * Main Error Handler
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
@@ -135,7 +135,7 @@ const catchAsync = (fn) => {
  * Not Found Handler
  * Handle 404 for unmatched routes
  */
-const notFound = (req, res, next) => {
+const notFound = (req, res, _next) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`,

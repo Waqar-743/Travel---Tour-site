@@ -4,7 +4,7 @@
  */
 
 const { body, param, query, validationResult } = require('express-validator');
-const { errorResponse } = require('../utils/responseFormatter');
+const { errorResponse: _errorResponse } = require('../utils/responseFormatter');
 
 /**
  * Handle validation errors

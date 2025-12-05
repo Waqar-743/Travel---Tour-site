@@ -16,8 +16,7 @@ const AIPlanner = ({ isOpen, onClose, onComplete }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      // Reset state when modal opens
       setStep(-1);
       setAnswers({ experience: '', duration: '', budget: '', interests: [], season: '' });
       setRecommendations([]);
@@ -304,7 +303,7 @@ const AIPlanner = ({ isOpen, onClose, onComplete }) => {
 
       // Interest matching
       const pkgName = pkg.name.toLowerCase();
-      const pkgDesc = pkg.description?.toLowerCase() || '';
+      const _pkgDesc = pkg.description?.toLowerCase() || '';
       if (answers.interests.includes('culture') && (pkgName.includes('cultural') || pkgName.includes('khaplu'))) {
         score += 15;
         reasons.push('Rich cultural experiences');

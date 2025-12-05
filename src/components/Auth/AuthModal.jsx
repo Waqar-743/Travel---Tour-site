@@ -25,7 +25,7 @@ const AuthModal = ({ isOpen, onClose }) => {
   
   const codeInputRefs = useRef([]);
 
-  const { login, register, verifyEmail, resendVerification, error: authError, clearError } = useAuth();
+  const { login, register, resendVerification, error: authError, clearError } = useAuth();
 
   // Countdown timer for resend cooldown
   useEffect(() => {

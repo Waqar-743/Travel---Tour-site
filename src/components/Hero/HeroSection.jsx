@@ -8,13 +8,6 @@ const HeroSection = ({ onOpenBooking, onOpenAIPlanner }) => {
     setIsLoaded(true);
   }, []);
 
-  const scrollToPackages = () => {
-    const packagesSection = document.getElementById('packages');
-    if (packagesSection) {
-      packagesSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section id="home" className="hero">
       <div className="hero-background">

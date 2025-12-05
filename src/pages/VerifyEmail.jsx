@@ -33,7 +33,7 @@ const VerifyEmail = () => {
           setStatus('error');
           setMessage(result.error || 'Verification failed.');
         }
-      } catch (err) {
+      } catch {
         setStatus('error');
         setMessage('An error occurred during verification.');
       }
