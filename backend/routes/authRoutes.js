@@ -15,6 +15,8 @@ router.get('/test-email-config', async (req, res) => {
   res.json({
     ...result,
     config: {
+      provider: result.provider || 'nodemailer',
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? 'SET' : 'NOT SET',
       EMAIL_USER: process.env.EMAIL_USER ? 'SET' : 'NOT SET',
       EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET',
       EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.gmail.com (default)',

@@ -1,9 +1,30 @@
 /**
  * Email Service
- * Handle all email operations using Nodemailer
+ * Handle all email operations using Nodemailer or Resend
  */
 
 const nodemailer = require('nodemailer');
+
+// Try to load Resend if available
+let Resend;
+try {
+  Resend = require('resend').Resend;
+} catch {
+  Resend = null;
+}
+
+// Determine which email provider to use
+const useResend = () => {
+  return process.env.RESEND_API_KEY && Resend;
+};
+
+// Create Resend client
+const createResendClient = () => {
+  if (!Resend) {
+    throw new Error('Resend package not installed');
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+};
 
 // Create reusable transporter with better error handling
 const createTransporter = () => {
@@ -27,7 +48,7 @@ const createTransporter = () => {
     logger: process.env.NODE_ENV === 'development',
   };
 
-  console.log('Email Config:', {
+  console.log('Email Config (Nodemailer):', {
     host: config.host,
     port: config.port,
     secure: config.secure,
@@ -43,14 +64,19 @@ const createTransporter = () => {
  * Verify email configuration is working
  */
 const verifyEmailConfig = async () => {
+  if (useResend()) {
+    console.log('✅ Using Resend for email');
+    return { success: true, message: 'Resend API configured', provider: 'resend' };
+  }
+  
   try {
     const transporter = createTransporter();
     await transporter.verify();
-    console.log('✅ Email server connection verified');
-    return { success: true, message: 'Email configuration is valid' };
+    console.log('✅ Nodemailer SMTP connection verified');
+    return { success: true, message: 'SMTP configuration is valid', provider: 'nodemailer' };
   } catch (error) {
-    console.error('❌ Email server connection failed:', error.message);
-    return { success: false, message: error.message };
+    console.error('❌ SMTP connection failed:', error.message);
+    return { success: false, message: error.message, provider: 'nodemailer' };
   }
 };
 
@@ -59,7 +85,36 @@ const verifyEmailConfig = async () => {
  * @param {Object} options - Email options
  */
 const sendEmail = async (options) => {
-  // Validate required env vars
+  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@gbtravelagency.com';
+  
+  // Use Resend if API key is configured
+  if (useResend()) {
+    console.log(`Sending email via Resend to: ${options.to}`);
+    
+    try {
+      const resend = createResendClient();
+      const { data, error } = await resend.emails.send({
+        from: `GB Travel Agency <${fromEmail}>`,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+      });
+      
+      if (error) {
+        console.error('❌ Resend error:', error);
+        throw new Error(error.message);
+      }
+      
+      console.log('✅ Email sent via Resend:', data?.id);
+      return { messageId: data?.id };
+    } catch (error) {
+      console.error('❌ Resend failed:', error);
+      throw error;
+    }
+  }
+
+  // Fallback to Nodemailer
   if (!process.env.EMAIL_USER) {
     console.error('EMAIL_USER is not configured');
     throw new Error('Email service not configured: EMAIL_USER missing');
@@ -72,21 +127,21 @@ const sendEmail = async (options) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || `"GB Travel Agency" <${process.env.EMAIL_USER}>`,
+    from: `"GB Travel Agency" <${process.env.EMAIL_USER}>`,
     to: options.to,
     subject: options.subject,
     text: options.text,
     html: options.html,
   };
 
-  console.log(`Attempting to send email to: ${options.to}, subject: ${options.subject}`);
+  console.log(`Attempting to send email via Nodemailer to: ${options.to}`);
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', info.messageId);
+    console.log('✅ Email sent via Nodemailer:', info.messageId);
     return info;
   } catch (error) {
-    console.error('❌ Email sending failed:', {
+    console.error('❌ Nodemailer failed:', {
       error: error.message,
       code: error.code,
       command: error.command,
