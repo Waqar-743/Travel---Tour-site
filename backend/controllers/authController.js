@@ -6,12 +6,13 @@
 const { User } = require('../models');
 const { generateTokens, verifyRefreshToken } = require('../utils/jwtHelper');
 const { successResponse, createdResponse, errorResponse } = require('../utils/responseFormatter');
-const { sendWelcomeEmail, sendEmailVerificationEmail, sendLoginNotificationEmail, sendPasswordResetEmail } = require('../utils/emailService');
+const { sendWelcomeEmail, sendLoginNotificationEmail, sendPasswordResetEmail, sendEmailSafe } = require('../utils/emailService');
 const { catchAsync } = require('../middleware/errorHandler');
 
 /**
  * Register new user
  * POST /api/auth/register
+ * No email verification - instant signup with welcome email
  */
 const register = catchAsync(async (req, res) => {
   const { fullName, email, password, phone } = req.body;
@@ -22,29 +23,81 @@ const register = catchAsync(async (req, res) => {
     return errorResponse(res, 'Email already registered', 409);
   }
 
-  // Create user
+  // Create user - mark as verified immediately (no verification needed)
   const user = await User.create({
     fullName,
     email: email.toLowerCase(),
     password,
     phone,
+    isEmailVerified: true, // Auto-verify
   });
 
-  // Generate email verification token
-  const verificationToken = user.generateEmailVerificationToken();
+  // Generate tokens for immediate login
+  const tokens = generateTokens(user);
+  user.refreshTokens.push(tokens.refreshToken);
+  user.lastLogin = new Date();
   await user.save({ validateBeforeSave: false });
 
-  // Send email verification email (fire and forget)
-  sendEmailVerificationEmail(user, verificationToken).catch((err) => {
-    console.error('Failed to send verification email:', err);
+  // Send welcome email (fire and forget with retry logic)
+  sendEmailSafe({
+    to: user.email,
+    subject: '🌍 Welcome to GB Travel Agency!',
+    text: `Hello ${user.fullName}! Welcome to GB Travel Agency. Start exploring amazing destinations today!`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; }
+          .header { background: linear-gradient(135deg, #1a3a3a 0%, #2d5a5a 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
+          .content { background: #ffffff; padding: 40px 30px; border: 1px solid #e5e7eb; }
+          .button { display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c4915f 100%); color: #1a3a3a; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+          .features { background: #f8f9fa; padding: 25px; border-radius: 10px; margin: 20px 0; }
+          .feature-item { padding: 8px 0; }
+          .footer { background: #f9fafb; padding: 25px 30px; text-align: center; color: #6b7280; font-size: 13px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 28px;">🌍 Welcome to GB Travel Agency!</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #1a3a3a; margin-top: 0;">Hello ${user.fullName}! 👋</h2>
+            <p>Thank you for joining our travel community! Your account is now active and ready to use.</p>
+            
+            <div class="features">
+              <p style="margin: 0 0 15px 0; font-weight: 600; color: #1a3a3a;">With your new account, you can:</p>
+              <div class="feature-item">🗺️ Explore beautiful destinations in Gilgit-Baltistan</div>
+              <div class="feature-item">📦 Book curated travel packages</div>
+              <div class="feature-item">💬 Get personalized travel recommendations</div>
+              <div class="feature-item">🎫 Enjoy exclusive member discounts</div>
+            </div>
+            
+            <a href="${process.env.FRONTEND_URL || 'https://waqar-743.github.io/Travel---Tour-site'}" class="button">
+              Start Exploring →
+            </a>
+            
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+              If you have any questions, our team is here to help you plan your perfect adventure.
+            </p>
+          </div>
+          <div class="footer">
+            <p style="margin: 0;">© ${new Date().getFullYear()} GB Travel Agency. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  }).then(result => {
+    console.log('Welcome email result:', result);
   });
 
   return createdResponse(res, {
-    email: user.email,
-    requiresVerification: true,
-    message: 'Verification email sent. Please check your inbox.',
-    nextStep: 'verify-email',
-  }, 'Registration successful. Please verify your email.');
+    user: user.toPublicJSON(),
+    tokens,
+  }, 'Registration successful! Welcome to GB Travel Agency.');
 });
 
 /**

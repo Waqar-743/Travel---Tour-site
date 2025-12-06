@@ -81,73 +81,82 @@ const verifyEmailConfig = async () => {
 };
 
 /**
- * Send Email
+ * Send Email with retry logic for reliability
  * @param {Object} options - Email options
+ * @param {number} retries - Number of retry attempts (default: 3)
  */
-const sendEmail = async (options) => {
-  // Use Resend if API key is configured
-  if (useResend()) {
-    // Resend requires verified domain or use their default: onboarding@resend.dev
-    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-    console.log(`Sending email via Resend to: ${options.to}`);
-    
+const sendEmail = async (options, retries = 3) => {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const resend = createResendClient();
-      const { data, error } = await resend.emails.send({
-        from: `GB Travel Agency <${fromEmail}>`,
-        to: [options.to],
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      });
-      
-      if (error) {
-        console.error('❌ Resend error:', error);
-        throw new Error(error.message);
+      // Use Resend if API key is configured
+      if (useResend()) {
+        const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+        console.log(`[Attempt ${attempt}/${retries}] Sending email via Resend to: ${options.to}`);
+        
+        const resend = createResendClient();
+        const { data, error } = await resend.emails.send({
+          from: `GB Travel Agency <${fromEmail}>`,
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        console.log('✅ Email sent via Resend:', data?.id);
+        return { messageId: data?.id, success: true };
       }
+
+      // Fallback to Nodemailer
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        throw new Error('Email service not configured');
+      }
+
+      const transporter = createTransporter();
+      const mailOptions = {
+        from: `"GB Travel Agency" <${process.env.EMAIL_USER}>`,
+        to: options.to,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+      };
+
+      console.log(`[Attempt ${attempt}/${retries}] Sending email via Nodemailer to: ${options.to}`);
+      const info = await transporter.sendMail(mailOptions);
+      console.log('✅ Email sent via Nodemailer:', info.messageId);
+      return { messageId: info.messageId, success: true };
       
-      console.log('✅ Email sent via Resend:', data?.id);
-      return { messageId: data?.id };
     } catch (error) {
-      console.error('❌ Resend failed:', error);
-      throw error;
+      lastError = error;
+      console.error(`❌ Email attempt ${attempt}/${retries} failed:`, error.message);
+      
+      if (attempt < retries) {
+        // Wait before retry (exponential backoff: 1s, 2s, 4s)
+        const delay = Math.pow(2, attempt - 1) * 1000;
+        console.log(`⏳ Retrying in ${delay/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
   }
+  
+  console.error('❌ All email attempts failed');
+  throw lastError;
+};
 
-  // Fallback to Nodemailer
-  if (!process.env.EMAIL_USER) {
-    console.error('EMAIL_USER is not configured');
-    throw new Error('Email service not configured: EMAIL_USER missing');
-  }
-  if (!process.env.EMAIL_PASSWORD) {
-    console.error('EMAIL_PASSWORD is not configured');
-    throw new Error('Email service not configured: EMAIL_PASSWORD missing');
-  }
-
-  const transporter = createTransporter();
-
-  const mailOptions = {
-    from: `"GB Travel Agency" <${process.env.EMAIL_USER}>`,
-    to: options.to,
-    subject: options.subject,
-    text: options.text,
-    html: options.html,
-  };
-
-  console.log(`Attempting to send email via Nodemailer to: ${options.to}`);
-
+/**
+ * Send email without throwing errors (fire and forget with logging)
+ */
+const sendEmailSafe = async (options) => {
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent via Nodemailer:', info.messageId);
-    return info;
+    return await sendEmail(options);
   } catch (error) {
-    console.error('❌ Nodemailer failed:', {
-      error: error.message,
-      code: error.code,
-      command: error.command,
-      to: options.to,
-    });
-    throw error;
+    console.error('📧 Email delivery failed (non-blocking):', error.message);
+    return { success: false, error: error.message };
   }
 };
 
@@ -710,6 +719,7 @@ const sendPasswordResetEmail = async (user, resetToken) => {
 
 module.exports = {
   sendEmail,
+  sendEmailSafe,
   sendWelcomeEmail,
   sendEmailVerificationEmail,
   sendLoginNotificationEmail,

@@ -110,19 +110,12 @@ const AuthModal = ({ isOpen, onClose }) => {
         });
 
         if (result.success) {
-          // Check if email verification is required
-          if (result.requiresVerification) {
-            setPendingEmail(formData.email);
-            setMode('verify');
-            setResendCooldown(60);
-            setSuccessMessage('A verification code has been sent to your email.');
-          } else {
-            setSuccessMessage('Account created successfully! Welcome aboard!');
-            setTimeout(() => {
-              onClose();
-              resetForm();
-            }, 1500);
-          }
+          // Instant signup - no verification needed
+          setSuccessMessage('Account created successfully! Welcome aboard!');
+          setTimeout(() => {
+            onClose();
+            resetForm();
+          }, 1500);
         }
       } else if (mode === 'forgot') {
         result = await forgotPassword(formData.email);

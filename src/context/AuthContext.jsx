@@ -57,18 +57,13 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Check if email verification is required
-      if (data.data.requiresVerification) {
-        return { 
-          success: true, 
-          requiresVerification: true,
-          email: userData.email,
-          message: data.message 
-        };
+      // Instant signup - user is logged in immediately
+      if (data.data.user && data.data.tokens) {
+        setUser(data.data.user);
+        setTokens(data.data.tokens);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        localStorage.setItem('tokens', JSON.stringify(data.data.tokens));
       }
-
-      setUser(data.data.user);
-      setTokens(data.data.tokens);
       
       return { success: true, data: data.data };
     } catch (err) {
