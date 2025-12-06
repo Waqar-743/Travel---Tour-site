@@ -5,18 +5,47 @@
 
 const nodemailer = require('nodemailer');
 
-// Create reusable transporter
+// Create reusable transporter with better error handling
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  const config = {
     service: process.env.EMAIL_SERVICE || 'gmail',
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
+    port: parseInt(process.env.EMAIL_PORT) || 587,
     secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
+    // Add debug for troubleshooting
+    debug: process.env.NODE_ENV === 'development',
+    logger: process.env.NODE_ENV === 'development',
+  };
+
+  console.log('Email Config:', {
+    service: config.service,
+    host: config.host,
+    port: config.port,
+    user: config.auth.user ? `${config.auth.user.substring(0, 5)}...` : 'NOT SET',
+    pass: config.auth.pass ? '****SET****' : 'NOT SET',
+    frontendUrl: process.env.FRONTEND_URL || 'NOT SET',
   });
+
+  return nodemailer.createTransport(config);
+};
+
+/**
+ * Verify email configuration is working
+ */
+const verifyEmailConfig = async () => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+    console.log('✅ Email server connection verified');
+    return { success: true, message: 'Email configuration is valid' };
+  } catch (error) {
+    console.error('❌ Email server connection failed:', error.message);
+    return { success: false, message: error.message };
+  }
 };
 
 /**
@@ -24,6 +53,16 @@ const createTransporter = () => {
  * @param {Object} options - Email options
  */
 const sendEmail = async (options) => {
+  // Validate required env vars
+  if (!process.env.EMAIL_USER) {
+    console.error('EMAIL_USER is not configured');
+    throw new Error('Email service not configured: EMAIL_USER missing');
+  }
+  if (!process.env.EMAIL_PASSWORD) {
+    console.error('EMAIL_PASSWORD is not configured');
+    throw new Error('Email service not configured: EMAIL_PASSWORD missing');
+  }
+
   const transporter = createTransporter();
 
   const mailOptions = {
@@ -34,12 +73,19 @@ const sendEmail = async (options) => {
     html: options.html,
   };
 
+  console.log(`Attempting to send email to: ${options.to}, subject: ${options.subject}`);
+
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    console.log('✅ Email sent successfully:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Email sending failed:', error);
+    console.error('❌ Email sending failed:', {
+      error: error.message,
+      code: error.code,
+      command: error.command,
+      to: options.to,
+    });
     throw error;
   }
 };
@@ -611,4 +657,5 @@ module.exports = {
   sendBookingCancellationEmail,
   sendTripReminderEmail,
   sendPasswordResetEmail,
+  verifyEmailConfig,
 };
