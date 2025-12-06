@@ -206,14 +206,15 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
 const startServer = async () => {
   try {
     // Connect to database
     await connectDB();
 
-    // Start listening
-    app.listen(PORT, () => {
+    // Start listening on 0.0.0.0 for Railway/Docker compatibility
+    app.listen(PORT, HOST, () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
