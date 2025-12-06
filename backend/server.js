@@ -97,6 +97,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'GB Travel Agency Backend API',
+    version: '1.0.0',
+    health: '/health',
+    api: '/api',
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

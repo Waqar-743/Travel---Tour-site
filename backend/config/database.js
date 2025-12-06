@@ -6,9 +6,19 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  const mongoUri = process.env.MONGODB_URI;
+  
+  if (!mongoUri) {
+    console.error('❌ MONGODB_URI environment variable is not set!');
+    console.error('Available env vars:', Object.keys(process.env).filter(k => !k.includes('npm')).join(', '));
+    throw new Error('MONGODB_URI is required');
+  }
+
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // Mongoose 8+ doesn't require these options, but keeping for compatibility
+    console.log('🔄 Connecting to MongoDB...');
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
@@ -30,7 +40,8 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+    console.error('Full error:', error);
+    throw error; // Let the caller handle it instead of exiting
   }
 };
 
