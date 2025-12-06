@@ -192,19 +192,10 @@ gb-travel-agency/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- [React](https://react.dev/) - UI Library
-- [Vite](https://vitejs.dev/) - Build Tool
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Unsplash](https://unsplash.com/) - Stock Photos
-
----
 
 <div align="center">
 
 ### Made with ❤️ by Waqar Ahmed
 
-*Explore the beauty of Gilgit-Baltistan* 🏔️
 
 </div>
