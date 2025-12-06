@@ -86,7 +86,7 @@ const BookingModal = ({ isOpen, onClose, onOpenAuth, selectedPackage = null }) =
       const returnDate = new Date(formData.startDate);
       returnDate.setDate(returnDate.getDate() + days);
 
-      const response = await fetch('http://localhost:5000/api/bookings', {
+      const response = await fetch('https://travel-tour-site-production.up.railway.app/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

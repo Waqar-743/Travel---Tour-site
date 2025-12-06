@@ -68,7 +68,7 @@ const ContactForm = () => {
     setSubmitError('');
     
     try {
-      const response = await fetch('http://localhost:5000/api/inquiries', {
+      const response = await fetch('https://travel-tour-site-production.up.railway.app/api/inquiries', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
