@@ -17,9 +17,8 @@ router.get('/test-email-config', async (req, res) => {
     config: {
       EMAIL_USER: process.env.EMAIL_USER ? 'SET' : 'NOT SET',
       EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET',
-      EMAIL_SERVICE: process.env.EMAIL_SERVICE || 'gmail (default)',
       EMAIL_HOST: process.env.EMAIL_HOST || 'smtp.gmail.com (default)',
-      EMAIL_PORT: process.env.EMAIL_PORT || '587 (default)',
+      EMAIL_PORT: process.env.EMAIL_PORT || '465 (default)',
       FRONTEND_URL: process.env.FRONTEND_URL || 'NOT SET',
     }
   });

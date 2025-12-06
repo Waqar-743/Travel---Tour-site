@@ -7,24 +7,30 @@ const nodemailer = require('nodemailer');
 
 // Create reusable transporter with better error handling
 const createTransporter = () => {
+  const port = parseInt(process.env.EMAIL_PORT) || 465;
+  const secure = port === 465; // Use secure for port 465
+
   const config = {
-    service: process.env.EMAIL_SERVICE || 'gmail',
     host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: false, // true for 465, false for other ports
+    port: port,
+    secure: secure,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
     },
+    // Connection settings
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
     // Add debug for troubleshooting
     debug: process.env.NODE_ENV === 'development',
     logger: process.env.NODE_ENV === 'development',
   };
 
   console.log('Email Config:', {
-    service: config.service,
     host: config.host,
     port: config.port,
+    secure: config.secure,
     user: config.auth.user ? `${config.auth.user.substring(0, 5)}...` : 'NOT SET',
     pass: config.auth.pass ? '****SET****' : 'NOT SET',
     frontendUrl: process.env.FRONTEND_URL || 'NOT SET',
