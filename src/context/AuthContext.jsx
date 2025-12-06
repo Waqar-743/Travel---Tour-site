@@ -269,6 +269,76 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Forgot Password - Send reset link
+   */
+  const forgotPassword = async (email) => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send password reset email');
+      }
+      
+      return { success: true, message: data.message };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Reset Password with token
+   */
+  const resetPassword = async (token, newPassword) => {
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, newPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to reset password');
+      }
+
+      // Auto-login after password reset
+      if (data.data.tokens && data.data.user) {
+        setUser(data.data.user);
+        setTokens(data.data.tokens);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        localStorage.setItem('tokens', JSON.stringify(data.data.tokens));
+      }
+      
+      return { success: true, message: data.message };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     tokens,
@@ -282,6 +352,8 @@ export const AuthProvider = ({ children }) => {
     getCurrentUser,
     verifyEmail,
     resendVerification,
+    forgotPassword,
+    resetPassword,
     clearError: () => setError(null),
   };
 

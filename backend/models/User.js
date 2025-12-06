@@ -164,6 +164,43 @@ userSchema.methods.verifyEmailToken = function (token) {
   return { valid: true };
 };
 
+// Generate password reset token
+userSchema.methods.generatePasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+    
+  // Token expires in 1 hour
+  this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
+  
+  return resetToken;
+};
+
+// Verify password reset token
+userSchema.methods.verifyPasswordResetToken = function (token) {
+  if (!this.passwordResetToken || !this.passwordResetExpires) {
+    return { valid: false, reason: 'no_token' };
+  }
+  
+  if (new Date() > this.passwordResetExpires) {
+    return { valid: false, reason: 'expired' };
+  }
+  
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+  
+  if (this.passwordResetToken !== hashedToken) {
+    return { valid: false, reason: 'invalid' };
+  }
+  
+  return { valid: true };
+};
+
 // Get public profile (without sensitive data)
 userSchema.methods.toPublicJSON = function () {
   return {

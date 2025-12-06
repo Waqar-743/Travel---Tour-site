@@ -6,7 +6,7 @@
 const { User } = require('../models');
 const { generateTokens, verifyRefreshToken } = require('../utils/jwtHelper');
 const { successResponse, createdResponse, errorResponse } = require('../utils/responseFormatter');
-const { sendWelcomeEmail, sendEmailVerificationEmail, sendLoginNotificationEmail } = require('../utils/emailService');
+const { sendWelcomeEmail, sendEmailVerificationEmail, sendLoginNotificationEmail, sendPasswordResetEmail } = require('../utils/emailService');
 const { catchAsync } = require('../middleware/errorHandler');
 
 /**
@@ -299,6 +299,93 @@ const changePassword = catchAsync(async (req, res) => {
   return successResponse(res, { tokens }, 'Password changed successfully');
 });
 
+/**
+ * Forgot Password
+ * POST /api/auth/forgot-password
+ */
+const forgotPassword = catchAsync(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return errorResponse(res, 'Email is required', 400);
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    // Don't reveal if user exists or not for security
+    return successResponse(res, {}, 'If an account with that email exists, a password reset link has been sent.');
+  }
+
+  // Generate reset token
+  const resetToken = user.generatePasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+
+  // Send password reset email
+  try {
+    await sendPasswordResetEmail(user, resetToken);
+    return successResponse(res, {}, 'Password reset link sent to your email.');
+  } catch (error) {
+    // If email fails, clear the token
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    console.error('Failed to send password reset email:', error);
+    return errorResponse(res, 'Failed to send email. Please try again later.', 500);
+  }
+});
+
+/**
+ * Reset Password
+ * POST /api/auth/reset-password
+ */
+const resetPassword = catchAsync(async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return errorResponse(res, 'Token and new password are required', 400);
+  }
+
+  if (newPassword.length < 6) {
+    return errorResponse(res, 'Password must be at least 6 characters', 400);
+  }
+
+  // Hash the token to compare with stored hash
+  const crypto = require('crypto');
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  // Find user with valid token
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return errorResponse(res, 'Invalid or expired reset token. Please request a new password reset.', 400);
+  }
+
+  // Update password
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  // Clear all refresh tokens (force re-login on all devices)
+  user.refreshTokens = [];
+  await user.save();
+
+  // Generate new tokens for auto-login
+  const tokens = generateTokens(user);
+  user.refreshTokens.push(tokens.refreshToken);
+  await user.save({ validateBeforeSave: false });
+
+  return successResponse(res, { 
+    user: user.toPublicJSON(),
+    tokens 
+  }, 'Password reset successful. You are now logged in.');
+});
+
 module.exports = {
   register,
   verifyEmail,
@@ -308,4 +395,6 @@ module.exports = {
   refreshToken,
   getMe,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };

@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose }) => {
-  const [mode, setMode] = useState('login'); // 'login', 'signup', or 'verify'
+  const [mode, setMode] = useState('login'); // 'login', 'signup', 'verify', 'forgot', 'reset'
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -25,7 +25,7 @@ const AuthModal = ({ isOpen, onClose }) => {
   
   const codeInputRefs = useRef([]);
 
-  const { login, register, resendVerification, error: authError, clearError } = useAuth();
+  const { login, register, resendVerification, forgotPassword, error: authError, clearError } = useAuth();
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -49,15 +49,17 @@ const AuthModal = ({ isOpen, onClose }) => {
       newErrors.fullName = 'Full name is required';
     }
 
-    if (!formData.email.trim()) {
+    // Email required for login, signup, and forgot password
+    if ((mode === 'login' || mode === 'signup' || mode === 'forgot') && !formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+    } else if ((mode === 'login' || mode === 'signup' || mode === 'forgot') && formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!formData.password) {
+    // Password required for login and signup only
+    if ((mode === 'login' || mode === 'signup') && !formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
+    } else if ((mode === 'login' || mode === 'signup') && formData.password && formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
@@ -121,6 +123,11 @@ const AuthModal = ({ isOpen, onClose }) => {
               resetForm();
             }, 1500);
           }
+        }
+      } else if (mode === 'forgot') {
+        result = await forgotPassword(formData.email);
+        if (result.success) {
+          setSuccessMessage('Password reset link sent! Check your email inbox.');
         }
       }
     } catch (err) {
@@ -206,6 +213,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           <h2>
             {mode === 'login' ? 'Welcome Back!' : 
              mode === 'signup' ? 'Create Account' : 
+             mode === 'forgot' ? 'Forgot Password?' :
              'Verify Your Email'}
           </h2>
           <p>
@@ -213,7 +221,9 @@ const AuthModal = ({ isOpen, onClose }) => {
               ? 'Sign in to continue your journey' 
               : mode === 'signup'
               ? 'Join us and start exploring'
-              : `Enter the 6-digit code sent to ${pendingEmail}`}
+              : mode === 'forgot'
+              ? 'Enter your email to receive a reset link'
+              : `We've sent a verification link to ${pendingEmail}`}
           </p>
         </div>
 
@@ -296,7 +306,7 @@ const AuthModal = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {/* Login/Signup Form */}
+        {/* Login/Signup/Forgot Form */}
         {mode !== 'verify' && (
         <form onSubmit={handleSubmit} className="auth-form">
           {mode === 'signup' && (
@@ -360,6 +370,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {(mode === 'login' || mode === 'signup') && (
           <div className="auth-form-group">
             <label htmlFor="password">Password</label>
             <div className="auth-input-wrapper">
@@ -396,6 +407,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             </div>
             {errors.password && <span className="auth-error">{errors.password}</span>}
           </div>
+          )}
 
           {mode === 'signup' && (
             <div className="auth-form-group">
@@ -421,7 +433,7 @@ const AuthModal = ({ isOpen, onClose }) => {
 
           {mode === 'login' && (
             <div className="auth-forgot-password">
-              <a href="#forgot">Forgot your password?</a>
+              <button type="button" onClick={() => { setMode('forgot'); resetForm(); }}>Forgot your password?</button>
             </div>
           )}
 
@@ -433,17 +445,31 @@ const AuthModal = ({ isOpen, onClose }) => {
             {isSubmitting ? (
               <>
                 <span className="auth-spinner"></span>
-                {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                {mode === 'login' ? 'Signing in...' : mode === 'signup' ? 'Creating account...' : 'Sending...'}
               </>
             ) : (
-              mode === 'login' ? 'Sign In' : 'Create Account'
+              mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Link'
             )}
           </button>
+
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              className="auth-back-btn"
+              onClick={() => { setMode('login'); resetForm(); }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Back to Sign In
+            </button>
+          )}
         </form>
         )}
 
         {/* Switch Mode */}
-        {mode !== 'verify' && (
+        {(mode === 'login' || mode === 'signup') && (
           <>
             <div className="auth-switch">
               <p>

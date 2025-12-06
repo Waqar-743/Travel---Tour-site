@@ -548,7 +548,7 @@ const sendTripReminderEmail = async (booking, user, trip) => {
 
 // Password Reset Email
 const sendPasswordResetEmail = async (user, resetToken) => {
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
   
   const html = `
     <!DOCTYPE html>

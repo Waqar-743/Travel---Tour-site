@@ -222,14 +222,18 @@
   margin-top: -8px;
 }
 
-.auth-forgot-password a {
+.auth-forgot-password button {
   color: var(--primary-accent, #2d7a7e);
   font-size: 0.875rem;
   text-decoration: none;
   transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
-.auth-forgot-password a:hover {
+.auth-forgot-password button:hover {
   color: var(--primary-accent-hover, #236366);
   text-decoration: underline;
 }
