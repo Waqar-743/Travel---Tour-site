@@ -85,10 +85,10 @@ const verifyEmailConfig = async () => {
  * @param {Object} options - Email options
  */
 const sendEmail = async (options) => {
-  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@gbtravelagency.com';
-  
   // Use Resend if API key is configured
   if (useResend()) {
+    // Resend requires verified domain or use their default: onboarding@resend.dev
+    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     console.log(`Sending email via Resend to: ${options.to}`);
     
     try {
